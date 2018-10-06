@@ -91,12 +91,16 @@ CFLAGS+="-I$PWD/src/expat-2.2.0 -DHAVE_EXPAT_CONFIG_H "
 SOURCE_FILES+="$PWD/src/ttml/src/*.c "
 CFLAGS+="-I$PWD/src/ttml/include "
 
+# html cleaner
+SOURCE_FILES+="$PWD/src/html/src/*.c "
+CFLAGS+="-I$PWD/src/html/include "
+
 rm -rf $PWD/out/$EPLATFORM/$OUTPUT_FILE_NAME
 mkdir -p $PWD/out/$EPLATFORM/
 
 OUT_FILE=$PWD/out/$EPLATFORM/$OUTPUT_FILE_NAME
 
-"$CROSS_COMPILE"gcc -shared -DNDEBUG -Os -fdata-sections -ffunction-sections -Wall -Wstrict-prototypes -fPIC -DMAJOR_VERSION=0 -DMINOR_VERSION=2 $CFLAGS $LDFLAGS $SOURCE_FILES -o $OUT_FILE -Wl,--gc-sections
+"$CROSS_COMPILE"gcc -shared -DNDEBUG -Os -fdata-sections -ffunction-sections -Wall -Wstrict-prototypes -fPIC -DMAJOR_VERSION=0 -DMINOR_VERSION=5 $CFLAGS $LDFLAGS $SOURCE_FILES -o $OUT_FILE -Wl,--gc-sections
 "$CROSS_COMPILE"strip -s $OUT_FILE
 
 echo "DONE: $OUT_FILE"

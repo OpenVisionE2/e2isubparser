@@ -2,12 +2,13 @@
 
 #include "vlc/include/subtitles.h"
 #include "ffmpeg/include/htmlsubtitles.h"
+#include "html/include/htmlcleaner.h"
 
 #define IPTV_ULL_TYPE unsigned long long 
 #define IPTV_LL_TYPE long long 
 #define IPTV_UI_TYPE unsigned int 
 
-static const char SUB_PARSER_VERSION[] = "0.4";
+static const char SUB_PARSER_VERSION[] = "0.5";
 static const IPTV_UI_TYPE MAX_SUBTITLE_TEXT_SIZE = 1024;
 
 
@@ -206,8 +207,49 @@ static PyObject * _subparser_parse(PyObject *self, PyObject *args)
     return retObj;
 }
 
+static PyObject* _subparser_strip_html_tags(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+    static char *kwlist[] = {"html", NULL};
+    PyObject *object = NULL;
+    PyObject *string = NULL;
+    char *in = NULL;
+    Py_ssize_t isize =  0;
+    int osize =  0;
+    char *out = NULL;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:strip_html_tags", kwlist, &string))
+        return NULL;
+    
+    if (!PyString_Check(string))
+        return NULL;
+
+    if (PyString_AsStringAndSize(string, &in, &isize) == -1) {
+        return NULL; // not a string object or it contains null bytes
+    }
+
+    Py_BEGIN_ALLOW_THREADS
+    out = strip_html_tags(in, isize, &osize);
+    Py_END_ALLOW_THREADS
+
+    if (out)
+    {
+        object = PyString_FromStringAndSize(out, osize);
+        free(out);
+    }
+    else
+    {
+        object = string;
+        Py_INCREF(object);
+    }
+
+    return object;
+}
+
 
 static PyMethodDef _subparserMethods[] = {
+    {"strip_html_tags", (PyCFunction)_subparser_strip_html_tags,  METH_VARARGS|METH_KEYWORDS,
+    PyDoc_STR("strip html tags")
+    },
     {"parse", (PyCFunction)_subparser_parse, METH_VARARGS,
      "return subtitles atom list parsed from given string (inputStr, i_microsecperframe, b_removeTags, b_setEndTime, i_CPS, i_WPM\n\n"
      " inputStr - (string encoded with UTF-8)\n"
